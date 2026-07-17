@@ -1,0 +1,46 @@
+model_name: ["ResNet-18","ViT-Tiny" ] 
+optimizer_name: ["sgd", "adam", "adamw","adafactor","lion", "adam-mini" ]
+
+hyperparametres_general :
+  batch_size : [32, 64, 128, 256]
+  epochs : 300
+  patience : 20
+  weight_decay : !!float 1e-4
+
+sgd :
+  lr : 0.001
+  momentum: 0.9
+  nesterov: true
+  scheduler: cosine
+  T_max : 100
+  eta_min : !!float 1e-5
+
+adam :
+  lr: 0.001
+  betas: [0.9, 0.999]
+  eps: !!float 1e-8
+  weight_decay: 0.0
+
+adamw :
+  lr: 0.001
+  betas: [0.9, 0.999]
+  eps: !!float 1e-8
+  
+
+adafactor: 
+  lr: !!float 1e-3
+  beta1: 0.9
+  decay_rate: -0.8
+  eps: [1e-30, 1e-3]
+  relative_step: false
+  scale_parameter: false
+
+lion: 
+  lr: !!float 3e-4
+  betas: [0.9, 0.99]
+
+adam-mini:
+  lr: 0.001
+  betas: [0.9, 0.999]
+  eps: !!float 1e-8
+  
