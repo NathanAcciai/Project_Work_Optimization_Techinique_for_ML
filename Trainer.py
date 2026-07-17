@@ -70,8 +70,8 @@ class Trainer():
             correct += predicted.eq(targets).sum().item()
             
         end_time= time.time()-start_time
-        epoch_loss = running_loss / total
-        epoch_acc = 100 * correct / total
+        epoch_loss = (running_loss / total)
+        epoch_acc = (100.0 * correct / total)
         peak_memory_mb = 0.0
         if torch.cuda.is_available():
             peak_memory_bytes = torch.cuda.max_memory_allocated(self.device)
@@ -86,7 +86,8 @@ class Trainer():
         running_loss = 0.0
         correct = 0
         total = 0
-        
+        if torch.cuda.is_available():
+            torch.cuda.reset_peak_memory_stats(self.device)
         for inputs, targets in dataloader:
             inputs, targets = inputs.to(self.device), targets.to(self.device)
             outputs = self.model(inputs)
@@ -125,8 +126,8 @@ class Trainer():
                 "train/accuracy": train_acc,
                 "val/loss": val_loss,
                 "val/accuracy": val_acc,
-                "system/train_peak_gpu_memory_mb": train_mem,
-                "system/val_peak_gpu_memory_mb": val_mem,
+                "memory/train_peak_gpu_memory_mb": train_mem,
+                "memory/val_peak_gpu_memory_mb": val_mem,
                 "time_total/seconds": train_time,
                 "time_total/formatted": time_data["string"],
                 "time_total/days": time_data["days"],
@@ -142,7 +143,7 @@ class Trainer():
                   f"Mem: {train_mem:.1f} MB | Time: {train_time:.2f}s")
             
             
-            if  self.early_stopping and epoch > 20:
+            if  self.early_stopping and epoch > 5:
                 checkpoint_data = {
                     'epoch': epoch,
                     'model_state_dict': self.model.state_dict(),
