@@ -1,4 +1,4 @@
-model_name: ["ViT-Tiny", "ResNet-18"] 
+model_name: ["ResNet-18", "ViT-Tiny"] 
 optimizer_name: [ "sgd","adam", "adamw","adafactor","lion", "adam-mini" ]
 
 hyperparametres_general :

@@ -69,7 +69,7 @@ def run_experiments():
                         run = wandb.init(
                             project="Project_work_Optimization_Technique",
                             name=run_name,
-                            group=f"{model_name}/{dataset_name}", # Crea una struttura a cartella su W&B
+                            group = f"{model_name}-{dataset_name}-bs{bs}",
                             config={
                                 "model": model_name,
                                 "dataset": dataset_name,
