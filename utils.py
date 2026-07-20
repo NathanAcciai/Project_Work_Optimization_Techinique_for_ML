@@ -1,3 +1,6 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 import torch
 import numpy as np
 import pandas as pd
@@ -9,10 +12,11 @@ import lion_pytorch
 import adam_mini
 import copy
 from tqdm.notebook import tqdm
+import torch.distributed as dist
 import yaml
 import timm 
 import time
-import os
+
 import gc
 
 import torch.nn as nn

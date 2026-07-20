@@ -1,5 +1,5 @@
 model_name: ["ResNet-18", "ViT-Tiny"] 
-optimizer_name: [ "sgd","adam", "adamw","adafactor","lion", "adam-mini" ]
+optimizer_name: [ "adam-mini", sgd","adam", "adamw","adafactor","lion"]
 
 hyperparametres_general :
   batch_size : [64, 128, 256, 512, 1024]
@@ -43,4 +43,6 @@ adam-mini:
   lr: 0.001
   betas: [0.9, 0.999]
   eps: !!float 1e-8
+  n_heads : 1
+  n_kv_heads : 1
   
