@@ -68,8 +68,12 @@ def run_experiments():
                     
                     run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}"
                     path_checkpoint = f"checkpoints/{run_name}"
+                    done_flag = os.path.join(path_checkpoint, "DONE")
                     os.makedirs(path_checkpoint, exist_ok=True)
-                    
+                    if os.path.exists(done_flag):
+                        print(f"[SKIP] {run_name} alredy completed.")
+                        continue
+
                     trainer = Trainer(config["hyperparametres_general"], model, optim, scheduler, path_checkpoint)
                     
                     print("\n" + "="*60)
@@ -93,6 +97,8 @@ def run_experiments():
                         trainer.training(train_dl, val_dl, run)
                         trainer.test(test_dl, run)
                         wandb.finish()
+                        with open(done_flag, "w") as f:
+                            f.write("ok")
 
                     except RuntimeError as e:
                         if "out of memory" in str(e).lower():

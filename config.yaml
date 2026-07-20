@@ -1,5 +1,5 @@
 model_name: ["ResNet-18", "ViT-Tiny"] 
-optimizer_name: [ "adam-mini", sgd","adam", "adamw","adafactor","lion"]
+optimizer_name: [ "adam-mini", "sgd","adam", "adamw","adafactor","lion"]
 
 hyperparametres_general :
   batch_size : [64, 128, 256, 512, 1024]
