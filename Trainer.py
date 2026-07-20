@@ -2,26 +2,26 @@
 import utils
 from utils import *
 class Earlystopping():
-    def __init__(self, patience, min_delta = 0.005, ):
+    def __init__(self, patience, min_delta=0.005):
         self.patience = patience
         self.min_delta = min_delta
         self.counter = 0
-        self.best_score = None
+        self.best_score = None  # Questo conterrà la miglior validation loss
         self.early_stop = False
-        self.best_model_wts = None
 
-
-    def __call__(self, current_score, model):
-
+    def __call__(self, current_loss):
+        # Se è la prima epoca, salviamo la loss corrente come migliore
         if self.best_score is None:
-            self.best_score = current_score
+            self.best_score = current_loss
             return True 
-        improved = current_score > (self.best_score + self.min_delta)
+        
+        
+        improved = current_loss < (self.best_score - self.min_delta)
         
         if improved:
-            self.best_score = current_score
+            self.best_score = current_loss
             self.counter = 0 
-            return True
+            return True  
         else:
             self.counter += 1
             if self.counter >= self.patience:
@@ -31,10 +31,10 @@ class Earlystopping():
 
 
 class Trainer():
-    def __init__(self, config, model , optimizer):
+    def __init__(self, config, model , optimizer,scheduler, checkpoint_path):
         super(Trainer,self).__init__()
         self.optimizer = optimizer
-        self.scheduler= None
+        self.scheduler= scheduler
         self.epochs = config["epochs"]
         self.model= model
         self.patience= config["patience"]
@@ -44,6 +44,7 @@ class Trainer():
         self.val_accuracy = -np.inf 
         self.best_accuracy= 0   
         self.early_stopping = Earlystopping(self.patience)
+        self.checkpoint_path= checkpoint_path
     
     def train_one_epoch(self, dataloader):
         self.model.train()
@@ -142,8 +143,8 @@ class Trainer():
                   f"Val Loss: {val_loss:.4f} - Acc: {val_acc:.2f}% | "
                   f"Mem: {train_mem:.1f} MB | Time: {train_time:.2f}s")
             
-            
-            if  self.early_stopping and epoch > 5:
+            is_best = self.early_stopping(val_loss)
+            if  is_best:
                 checkpoint_data = {
                     'epoch': epoch,
                     'model_state_dict': self.model.state_dict(),
@@ -151,22 +152,23 @@ class Trainer():
                     'scheduler_state_dict': self.scheduler.state_dict() if self.scheduler is not None else None,
                     'best_accuracy': self.best_accuracy,
                 }
-                torch.save(checkpoint_data, "checkpoints/best_model.pt")
+                torch.save(checkpoint_data, f"{self.checkpoint_path}/best_model.pt")
                 self.best_model_wts = copy.deepcopy(self.model.state_dict())
                 
-            
+            if self.early_stopping.early_stop:
+                break
             if self.scheduler is not None:
                 self.scheduler.step()
-                
+            
         self.model.load_state_dict(self.best_model_wts)
         
 
-        wandb_run.run.summary["best_val_accuracy"] = self.best_accuracy
-        wandb_run.run.summary["total_training_time"] = format_elapsed_time(time.time() - start_time)["string"]
+        wandb_run.summary["best_val_accuracy"] = self.best_accuracy
+        wandb_run.summary["total_training_time"] = format_elapsed_time(time.time() - start_time)["string"]
         
         
     
-    def Test(self, dataloader,wandb_run):
+    def test(self, dataloader,wandb_run):
         start_test= time.time()
         _,test_acc, test_mem = self.evaluate(dataloader = dataloader)
         end_test= time.time()- start_test

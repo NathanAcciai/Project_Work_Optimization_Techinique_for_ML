@@ -11,12 +11,10 @@ def Model_selection(num_classes, model_name= "ResNet-18" ):
     if model_name=="ResNet-18":
         model = resnet18(
             weights=None,
-            num_classes=10
+            num_classes=num_classes
         )
-        in_features = model.fc.in_features
-        model.fc = nn.Linear(in_features, num_classes)
 
-    elif model_name=="":
+    elif model_name=="ViT-Tiny":
         model = timm.create_model(
             "vit_tiny_patch16_224",
             pretrained=False,
@@ -37,13 +35,13 @@ def Model_selection(num_classes, model_name= "ResNet-18" ):
 def run_experiments():
     with open("config.yaml") as stream:
         config=yaml.safe_load(stream)
-    os.makedirs("checkpoints", exist_ok=True)
+    
     batch_sizes= config["hyperparametres_general"].get("batch_size")
     model_names= config["model_name"]
     optimizer_names= config["optimizer_name"]
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    datasets = ["cifar10", "cifar100"]
-    os.makedirs("Results", exist_ok=True)
+    datasets = [ "cifar10","cifar100"]
+    
     
     for dataset_name in datasets:
         num_classes = 100 if dataset_name == "cifar100" else 10
@@ -54,8 +52,13 @@ def run_experiments():
                 for opt_name in optimizer_names:
                     
                     optim= build_optimizer(model = model, optimizer_name = opt_name, config= config)
-                    trainer = Trainer(config["hyperparametres_general"],model, optim)
+                    scheduler= None
+                    if opt_name=="sgd":
+                        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim,T_max=100, eta_min=1e-5)
                     run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}"
+                    path_checkpoint= f"checkpoints/{run_name}"
+                    os.makedirs(path_checkpoint, exist_ok=True)
+                    trainer = Trainer(config["hyperparametres_general"],model, optim,scheduler, path_checkpoint)
                     
                     print("\n" + "="*60)
                     print(f" Start Train: {run_name}")
@@ -77,6 +80,7 @@ def run_experiments():
                         )
                         
                         trainer.training(train_dl, val_dl, run)
+                        trainer.test(test_dl,run)
                         wandb.finish()
                         
                     except RuntimeError as e:

@@ -51,7 +51,7 @@ def build_optimizer(model, optimizer_name,config):
         )
     if optimizer_name=="adam-mini":
         return Adam_mini(
-            params,
+            model.named_parameters(),
             lr=cfg.get("lr"),
             betas=tuple(cfg.get("betas")),
             eps= cfg.get("eps"),

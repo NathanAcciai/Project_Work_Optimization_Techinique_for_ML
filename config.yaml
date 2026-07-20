@@ -1,10 +1,10 @@
-model_name: ["ResNet-18","ViT-Tiny" ] 
-optimizer_name: ["sgd", "adam", "adamw","adafactor","lion", "adam-mini" ]
+model_name: ["ViT-Tiny", "ResNet-18"] 
+optimizer_name: [ "sgd","adam", "adamw","adafactor","lion", "adam-mini" ]
 
 hyperparametres_general :
-  batch_size : [32, 64, 128, 256]
+  batch_size : [64, 128, 256, 512, 1024]
   epochs : 300
-  patience : 20
+  patience : 10
   weight_decay : !!float 1e-4
 
 sgd :
@@ -31,7 +31,7 @@ adafactor:
   lr: !!float 1e-3
   beta1: 0.9
   decay_rate: -0.8
-  eps: [1e-30, 1e-3]
+  eps: [!!float 1e-30, !!float 1e-3]
   relative_step: false
   scale_parameter: false
 
