@@ -3,6 +3,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import torch
 import numpy as np
+import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import tensorboard
@@ -116,5 +117,21 @@ def load_dataset(dataset_name="cifar10",batch_size= 16):
     test_dl= DataLoader(test, batch_size=batch_size, shuffle=False, num_workers=4,pin_memory=True)
 
     return train_dl, val_dl, test_dl
+
+
+def get_config_for_dataset(config, dataset_name):
+    cfg = copy.deepcopy(config)
+    dataset_cfg = config["datasets"][dataset_name]
+
+    cfg["hyperparametres_general"]["patience_resnet"] = dataset_cfg["patience_resnet"]
+    cfg["hyperparametres_general"]["patience_tiny"] = dataset_cfg["patience_tiny"]
+    cfg["hyperparametres_general"]["weight_decay_resnet"] = dataset_cfg["weight_decay_resnet"]
+    cfg["hyperparametres_general"]["weight_decay_vit"] = dataset_cfg["weight_decay_vit"]
+
+    # merge vit_specific (override solo le chiavi presenti, mantiene le altre)
+    cfg["vit_specific"].update(dataset_cfg.get("vit_specific", {}))
+
+    cfg["num_classes"] = dataset_cfg["num_classes"]
+    return cfg
         
 

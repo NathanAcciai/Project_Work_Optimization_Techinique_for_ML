@@ -1,12 +1,47 @@
 model_name: ["ResNet-18", "ViT-Tiny"] 
 optimizer_name: [ "adam-mini", "sgd","adam", "adamw","adafactor","lion"]
 
-hyperparametres_general :
-  batch_size : [64, 128, 256, 512, 1024]
-  epochs : 300
-  patience : 10
-  weight_decay : !!float 1e-4
+hyperparametres_general:
+  batch_size: [64, 128, 256, 512, 1024]
+  epochs: 300
+  weight_decay_resnet: !!float 1e-4
+  weight_decay_vit: !!float 0.05 
 
+datasets:
+  cifar10:
+    num_classes: 10
+    patience_resnet: 15
+    patience_tiny: 30
+    weight_decay_resnet: !!float 1e-4
+    weight_decay_vit: !!float 0.05
+    vit_specific:
+      label_smoothing: 0.1
+      drop_path_rate: 0.1
+      mixup_alpha: 0.8
+      cutmix_alpha: 1.0
+
+  cifar100:
+    num_classes: 100
+    patience_resnet: 20 
+    patience_tiny: 35
+    weight_decay_resnet: !!float 5e-4
+    weight_decay_vit: !!float 0.1
+    vit_specific:
+      label_smoothing: 0.15    
+      drop_path_rate: 0.15
+      mixup_alpha: 0.5         
+      cutmix_alpha: 1.0
+
+
+
+
+vit_specific:
+  patch_size: 4
+  warmup_epochs: 10       
+  warmup_type: linear
+
+  label_smoothing: 0.1
+  drop_path_rate: 0.1  
 sgd :
   lr : 0.001
   momentum: 0.9

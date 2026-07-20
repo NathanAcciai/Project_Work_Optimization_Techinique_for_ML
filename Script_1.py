@@ -51,20 +51,21 @@ def run_experiments():
     
     for dataset_name in datasets:
         num_classes = 100 if dataset_name == "cifar100" else 10
+        dataset_config = get_config_for_dataset(config, dataset_name)
         for bs in batch_sizes:
             for model_name in model_names:
                 for opt_name in optimizer_names:
                     
                     # 1. Ricreiamo i DataLoader freschi per ogni esperimento (evita deadlock sui worker)
+                    
                     train_dl, val_dl, test_dl = load_dataset(dataset_name=dataset_name, batch_size=bs)
                     
                     # 2. Ricreiamo il MODELLO da zero per ogni ottimizzatore!
-                    model = Model_selection(num_classes, model_name).to(device)
-                    optim = build_optimizer(model=model, optimizer_name=opt_name, config=config)
+                    model = Model_selection(model_name=model_name, num_classes=dataset_config["num_classes"]).to(device)
+                    optimizer = build_optimizer(model, opt_name, model_name, dataset_config)
+                    scheduler = build_scheduler(optimizer, opt_name, model_name, dataset_config)
+
                     
-                    scheduler = None
-                    if opt_name == "sgd":
-                        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, T_max=100, eta_min=1e-5)
                     
                     run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}"
                     path_checkpoint = f"checkpoints/{run_name}"
@@ -73,8 +74,16 @@ def run_experiments():
                     if os.path.exists(done_flag):
                         print(f"[SKIP] {run_name} alredy completed.")
                         continue
-
-                    trainer = Trainer(config["hyperparametres_general"], model, optim, scheduler, path_checkpoint)
+                    
+                    trainer = Trainer(config=dataset_config["hyperparametres_general"],
+                                          model=model,
+                                          optimizer=optimizer,        
+                                          scheduler=scheduler,        
+                                          checkpoint_path=path_checkpoint,        
+                                          patience=dataset_config["hyperparametres_general"]["patience_tiny"] if model_name == "ViT-Tiny"
+                                                    else dataset_config["hyperparametres_general"]["patience_resnet"],        
+                                          model_name=model_name    
+                                          )
                     
                     print("\n" + "="*60)
                     print(f" Start Train: {run_name}")
