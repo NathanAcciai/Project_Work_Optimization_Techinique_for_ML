@@ -98,26 +98,33 @@ def build_optimizer(model, optimizer_name, model_name, config):
         return optimizer
 
 
-def build_scheduler(optimizer, optimizer_name, model_name, config):
-    total_epochs = config["hyperparametres_general"]["epochs"]
-
-    #if model_name == "ViT-Tiny":
-    #    vit_cfg = config["vit_specific"]
-    #    warmup_epochs = vit_cfg.get("warmup_epochs", 0)
-#
-    #    def lr_lambda(epoch):
-    #        if warmup_epochs > 0 and epoch < warmup_epochs:
-    #            return (epoch + 1) / warmup_epochs
-    #        progress = (epoch - warmup_epochs) / max(1, total_epochs - warmup_epochs)
-    #        return 0.5 * (1 + math.cos(math.pi * progress))
-#
-    #    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+def build_scheduler(optimizer,  config):
 
     
-    if optimizer_name == "sgd":
-        cfg = config["sgd"]
-        return torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=cfg.get("T_max"), eta_min=cfg.get("eta_min")
-        )
+    total_epochs = config["hyperparametres_general"]["epochs"]
+    warmup_epochs = config["hyperparametres_general"]["warmup_epochs"]
+    eta_min = config["hyperparametres_general"]["eta_min"]
+    warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
+        optimizer,
+        start_factor=0.1,
+        total_iters=warmup_epochs
+    )
 
-    return None
+
+    cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=total_epochs - warmup_epochs,
+        eta_min=eta_min
+    )
+
+
+    scheduler = torch.optim.lr_scheduler.SequentialLR(
+        optimizer,
+        schedulers=[
+            warmup_scheduler,
+            cosine_scheduler
+        ],
+        milestones=[warmup_epochs]
+    )
+
+    return scheduler

@@ -12,17 +12,28 @@ from Trainer import *
 # %%
 def Model_selection(num_classes, model_name= "ResNet-18" ):
     if model_name=="ResNet-18":
+        #dattata a cifar
         model = resnet18(
             weights=None,
             num_classes=num_classes
         )
 
+        model.conv1 = nn.Conv2d(
+            3,64,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            bias=False
+        )
+
+        model.maxpool = nn.Identity()
+
     elif model_name=="ViT-Tiny":
         model = timm.create_model(
-            "vit_tiny_patch16_224",
+            "vit_tiny_patch4_32",
             pretrained=False,
             num_classes=num_classes
-        )
+        )       
     elif model_name=="ViT-Base":
         model = vit_b_16(
             weights=None,          
@@ -74,8 +85,6 @@ def run_experiments():
                                                 config
                                             )
                     scheduler = build_scheduler(optimizer,
-                                                opt_name,
-                                                model_name,
                                                 config
                                             )
 

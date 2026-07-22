@@ -62,25 +62,22 @@ def format_elapsed_time(seconds):
 
 def load_dataset(dataset_name="cifar10",batch_size= 16):
     #standard trasformation for this type of dataset
-    if dataset_name!= "ViT-Base":
-        mean = [0.4914, 0.4822, 0.4465]
-        std = [0.2023, 0.1994, 0.2010]
-    else:
-        mean=[0.485,0.456,0.406],
-        std=[0.229,0.224,0.225]
+    
+
+
+    mean = [0.4914, 0.4822, 0.4465]
+    std = [0.2023, 0.1994, 0.2010]
     
     train_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(224, padding=4),
         transforms.ToTensor(),
-        transforms.Normalize(mean, std)
+        transforms.Normalize(mean,std)
     ])
-    
+
     test_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize(mean, std)
+        transforms.Normalize(mean,std)
     ])
 
     if dataset_name.upper() == "CIFAR10":
