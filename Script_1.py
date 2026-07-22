@@ -10,7 +10,7 @@ from config import *
 from Trainer import *
 
 # %%
-def Model_selection(num_classes, model_name= "ResNet-18" ):
+def Model_selection(num_classes, config,model_name= "ResNet-18" ):
     if model_name=="ResNet-18":
         #dattata a cifar
         model = resnet18(
@@ -30,10 +30,13 @@ def Model_selection(num_classes, model_name= "ResNet-18" ):
 
     elif model_name=="ViT-Tiny":
         model = timm.create_model(
-            "vit_tiny_patch4_32",
+            "vit_tiny_patch16_224",
             pretrained=False,
-            num_classes=num_classes
-        )       
+            img_size=32,
+            patch_size=4,
+            num_classes=num_classes,
+            drop_path_rate=config["vit_specific"]["drop_path_rate"]
+        ) 
     elif model_name=="ViT-Base":
         model = vit_b_16(
             weights=None,          
@@ -78,7 +81,7 @@ def run_experiments():
                     train_dl, val_dl, test_dl = load_dataset(dataset_name=dataset_name, batch_size=bs)
                     
                     
-                    model = Model_selection(model_name=model_name, num_classes=config["datasets"][dataset_name]["num_classes"]).to(device)
+                    model = Model_selection(model_name=model_name, config=config,num_classes=config["datasets"][dataset_name]["num_classes"]).to(device)
                     optimizer = build_optimizer(model,
                                                 opt_name,
                                                 model_name,
