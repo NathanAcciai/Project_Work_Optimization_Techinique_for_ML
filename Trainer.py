@@ -42,7 +42,7 @@ class Trainer():
 
         # label smoothing solo per ViT, come da config vit_specific
         label_smoothing = 0.0
-        if model_name == "ViT-Tiny":
+        if model_name.startswith("ViT"):
             label_smoothing = config.get("vit_specific", {}).get("label_smoothing", 0.0)
         self.criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
 

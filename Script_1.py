@@ -23,6 +23,14 @@ def Model_selection(num_classes, model_name= "ResNet-18" ):
             pretrained=False,
             num_classes=num_classes
         )
+    elif model_name=="ViT-Base":
+        model = vit_b_16(
+            weights=None,          
+            num_classes=num_classes
+        )
+
+        return model
+
     else:
         #da vedere
         model= None
@@ -50,20 +58,26 @@ def run_experiments():
     datasets = ["cifar10", "cifar100"]
     
     for dataset_name in datasets:
-        num_classes = 100 if dataset_name == "cifar100" else 10
-        dataset_config = get_config_for_dataset(config, dataset_name)
         for bs in batch_sizes:
             for model_name in model_names:
                 for opt_name in optimizer_names:
                     
-                    # 1. Ricreiamo i DataLoader freschi per ogni esperimento (evita deadlock sui worker)
+                    
                     
                     train_dl, val_dl, test_dl = load_dataset(dataset_name=dataset_name, batch_size=bs)
                     
-                    # 2. Ricreiamo il MODELLO da zero per ogni ottimizzatore!
-                    model = Model_selection(model_name=model_name, num_classes=dataset_config["num_classes"]).to(device)
-                    optimizer = build_optimizer(model, opt_name, model_name, dataset_config)
-                    scheduler = build_scheduler(optimizer, opt_name, model_name, dataset_config)
+                    
+                    model = Model_selection(model_name=model_name, num_classes=config["datasets"][dataset_name]["num_classes"]).to(device)
+                    optimizer = build_optimizer(model,
+                                                opt_name,
+                                                model_name,
+                                                config
+                                            )
+                    scheduler = build_scheduler(optimizer,
+                                                opt_name,
+                                                model_name,
+                                                config
+                                            )
 
                     
                     
@@ -74,14 +88,17 @@ def run_experiments():
                     if os.path.exists(done_flag):
                         print(f"[SKIP] {run_name} alredy completed.")
                         continue
-                    
-                    trainer = Trainer(config=dataset_config["hyperparametres_general"],
+                    config_patience= config["datasets"][dataset_name]
+                    if model_name=="ResNet-18":
+                        patience= config_patience["patience_resnet"]
+                    else:
+                        patience= config_patience["patience_tiny"]
+                    trainer = Trainer(config=config["hyperparametres_general"],
                                           model=model,
                                           optimizer=optimizer,        
                                           scheduler=scheduler,        
                                           checkpoint_path=path_checkpoint,        
-                                          patience=dataset_config["hyperparametres_general"]["patience_tiny"] if model_name == "ViT-Tiny"
-                                                    else dataset_config["hyperparametres_general"]["patience_resnet"],        
+                                          patience=patience,
                                           model_name=model_name    
                                           )
                     
@@ -112,6 +129,8 @@ def run_experiments():
                     except RuntimeError as e:
                         if "out of memory" in str(e).lower():
                             print(f"\n[!!!] CUDA OUT OF MEMORY rilevato: {run_name}")
+                            with open(done_flag, "w") as f:
+                                f.write("ok")
                             if wandb.run is not None:
                                 wandb.run.summary["status"] = "FAILED_OOM"
                                 wandb.finish(exit_code=1)
@@ -119,14 +138,15 @@ def run_experiments():
                             if wandb.run is not None:
                                 wandb.finish(exit_code=1)
                             raise e
-
-                    finally:
-                        # 3. PULIZIA COMPLETA: viene eseguita SEMPRE a fine run
-                        del model, optim, trainer, train_dl, val_dl, test_dl
+                        del model, optimizer, trainer, train_dl, val_dl, test_dl
                         if 'scheduler' in locals() and scheduler is not None:
                             del scheduler
                         
                         gc.collect()
+
+                    finally:
+                        # 3. PULIZIA COMPLETA: viene eseguita SEMPRE a fine run
+                        
                         torch.cuda.empty_cache()
                         time.sleep(3)
 

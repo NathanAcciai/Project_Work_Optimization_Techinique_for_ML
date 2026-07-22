@@ -22,11 +22,11 @@ import gc
 
 import torch.nn as nn
 import torch.functional as F
-from torchvision import transforms
+from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, random_split
 from torchvision.datasets import CIFAR10, CIFAR100
 from torchvision import transforms
-from torchvision.models import resnet18
+from torchvision.models import resnet18,vit_b_16
 from transformers.optimization import Adafactor
 from lion_pytorch import Lion
 from adam_mini import Adam_mini
@@ -62,8 +62,12 @@ def format_elapsed_time(seconds):
 
 def load_dataset(dataset_name="cifar10",batch_size= 16):
     #standard trasformation for this type of dataset
-    mean = [0.4914, 0.4822, 0.4465]
-    std = [0.2023, 0.1994, 0.2010]
+    if dataset_name!= "ViT-Base":
+        mean = [0.4914, 0.4822, 0.4465]
+        std = [0.2023, 0.1994, 0.2010]
+    else:
+        mean=[0.485,0.456,0.406],
+        std=[0.229,0.224,0.225]
     
     train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -106,8 +110,19 @@ def load_dataset(dataset_name="cifar10",batch_size= 16):
             download=True,
             transform= test_transform
         )
+    elif dataset_name.upper() == "TINYIMAGNET200":
+        path= "./data/tiny-imagenet-200"
+        train = datasets.ImageFolder(
+            path+"/train",
+            train_transform
+        )
+
+        test = datasets.ImageFolder(
+            path+"/val",
+            test_transform
+        )        
     else:
-        raise ValueError("Scegli tra 'CIFAR10' o 'CIFAR100'")
+        raise ValueError("Scegli tra 'CIFAR10' o 'CIFAR100' o 'Imagenet200'")
     
     train_size = int(0.8 * len(train))
     val_size = len(train) - train_size

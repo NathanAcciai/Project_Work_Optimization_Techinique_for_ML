@@ -1,19 +1,16 @@
 model_name: ["ResNet-18", "ViT-Tiny"] 
-optimizer_name: [ "adam-mini", "sgd","adam", "adamw","adafactor","lion"]
+optimizer_name: ["adam", "sgd", "adam-mini", "adamw", "adafactor", "lion"]
 
 hyperparametres_general:
-  batch_size: [64, 128, 256, 512, 1024]
+  batch_size: [ 256, 512, 1024]
   epochs: 300
-  weight_decay_resnet: !!float 1e-4
-  weight_decay_vit: !!float 0.05 
 
 datasets:
   cifar10:
     num_classes: 10
     patience_resnet: 15
     patience_tiny: 30
-    weight_decay_resnet: !!float 1e-4
-    weight_decay_vit: !!float 0.05
+
     vit_specific:
       label_smoothing: 0.1
       drop_path_rate: 0.1
@@ -22,62 +19,161 @@ datasets:
 
   cifar100:
     num_classes: 100
-    patience_resnet: 20 
+    patience_resnet: 20
     patience_tiny: 35
-    weight_decay_resnet: !!float 5e-4
-    weight_decay_vit: !!float 0.1
+
     vit_specific:
-      label_smoothing: 0.15    
+      label_smoothing: 0.15
       drop_path_rate: 0.15
-      mixup_alpha: 0.5         
+      mixup_alpha: 0.8
       cutmix_alpha: 1.0
-
-
 
 
 vit_specific:
   patch_size: 4
-  warmup_epochs: 10       
+  warmup_epochs: 5
   warmup_type: linear
-
   label_smoothing: 0.1
-  drop_path_rate: 0.1  
-sgd :
-  lr : 0.001
-  momentum: 0.9
-  nesterov: true
+  drop_path_rate: 0.1
+
+
+#################################
+# SGD
+#################################
+
+sgd:
+  # ResNet-18
+  resnet:
+    lr: !!float 1e-2
+    momentum: 0.9
+    nesterov: true
+    weight_decay: !!float 5e-4
+
+  # ViT-Tiny
+  vit:
+    lr: !!float 3e-4
+    momentum: 0.9
+    nesterov: true
+    weight_decay: !!float 5e-4
+
   scheduler: cosine
-  T_max : 100
-  eta_min : !!float 1e-5
+  T_max: 300
+  eta_min: !!float 1e-5
 
-adam :
-  lr: 0.001
-  betas: [0.9, 0.999]
-  eps: !!float 1e-8
-  weight_decay: 0.0
 
-adamw :
-  lr: 0.001
-  betas: [0.9, 0.999]
-  eps: !!float 1e-8
-  
 
-adafactor: 
-  lr: !!float 1e-3
-  beta1: 0.9
-  decay_rate: -0.8
-  eps: [!!float 1e-30, !!float 1e-3]
-  relative_step: false
-  scale_parameter: false
+#################################
+# Adam
+#################################
 
-lion: 
-  lr: !!float 3e-4
-  betas: [0.9, 0.99]
+adam:
+  # ResNet-18
+  resnet:
+    lr: !!float 1e-3
+    betas: [0.9, 0.999]
+    eps: !!float 1e-8
+    weight_decay: 0.0
+
+  # ViT-Tiny
+  vit:
+    lr: !!float 5e-4
+    betas: [0.9, 0.999]
+    eps: !!float 1e-8
+    weight_decay: 0.0
+
+
+
+#################################
+# AdamW
+#################################
+
+adamw:
+  # ResNet-18
+  resnet:
+    lr: !!float 1e-3
+    betas: [0.9, 0.999]
+    eps: !!float 1e-8
+    weight_decay: !!float 1e-4
+
+  # ViT-Tiny
+  vit:
+    lr: !!float 8e-4
+    betas: [0.9, 0.999]
+    eps: !!float 1e-8
+    weight_decay: !!float 0.05
+
+
+
+#################################
+# Adafactor
+#################################
+
+adafactor:
+
+  # ResNet-18
+  resnet:
+    lr: !!float 1e-3
+    beta1: 0.9
+    decay_rate: -0.8
+    eps: [!!float 1e-30, !!float 1e-3]
+    relative_step: false
+    scale_parameter: false
+    weight_decay: !!float 1e-4
+
+  # ViT-Tiny
+  vit:
+    lr: !!float 8e-4
+    beta1: 0.9
+    decay_rate: -0.8
+    eps: [!!float 1e-30, !!float 1e-3]
+    relative_step: false
+    scale_parameter: false
+    weight_decay: 0.0
+
+
+
+#################################
+# Lion
+#################################
+
+lion:
+
+  # ResNet-18
+  resnet:
+    lr: !!float 3e-4
+    betas: [0.9, 0.99]
+    weight_decay: !!float 1e-4
+
+  # ViT-Tiny
+  vit:
+    lr: !!float 3e-4
+    betas: [0.9, 0.99]
+    weight_decay: !!float 0.05
+
+
+
+
+#################################
+# Adam-mini
+#################################
 
 adam-mini:
-  lr: 0.001
-  betas: [0.9, 0.999]
-  eps: !!float 1e-8
-  n_heads : 1
-  n_kv_heads : 1
-  
+
+  # ResNet-18
+  resnet:
+    lr: !!float 1e-3
+    betas: [0.9, 0.999]
+    eps: !!float 1e-8
+    weight_decay: !!float 1e-4
+    n_heads: 1
+    n_kv_heads: 1
+
+
+  # ViT-Tiny
+  vit:
+    lr: !!float 7e-4
+    betas: [0.9, 0.999]
+    eps: !!float 1e-8
+    weight_decay: !!float 0.02
+    n_heads: 1
+    n_kv_heads: 1
