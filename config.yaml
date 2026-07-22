@@ -8,7 +8,7 @@ hyperparametres_general:
   warmup: linear
   warmup_epochs: 5
   T_max: 300
-  eta_min: 1e-5
+  eta_min: !!float 1e-5
 
 datasets:
   cifar10:
