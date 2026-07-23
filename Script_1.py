@@ -60,10 +60,13 @@ def Model_selection(num_classes, config,model_name= "ResNet-18" ):
 
 
 # %%
-def run_experiments():
-    
-    with open("config.yaml") as stream:
-        config = yaml.safe_load(stream)
+def run_experiments(single_experiments=True):
+    if single_experiments:
+        with open("config_2.yaml") as stream:
+                config = yaml.safe_load(stream)
+    else:
+        with open("config.yaml") as stream:
+            config = yaml.safe_load(stream)
     
     batch_sizes = config["hyperparametres_general"].get("batch_size")
     model_names = config["model_name"]
@@ -72,12 +75,11 @@ def run_experiments():
     datasets = ["cifar10", "cifar100"]
     
     for dataset_name in datasets:
+        if dataset_name=="cifar10":
+            continue
         for bs in batch_sizes:
             for model_name in model_names:
                 for opt_name in optimizer_names:
-                    
-                    
-                    
                     train_dl, val_dl, test_dl = load_dataset(dataset_name=dataset_name, batch_size=bs)
                     
                     

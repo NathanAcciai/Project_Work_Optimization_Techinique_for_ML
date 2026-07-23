@@ -2,7 +2,7 @@ model_name: ["ResNet-18", "ViT-Tiny"]
 optimizer_name: ["adam", "sgd", "adam-mini", "adamw", "adafactor", "lion"]
 
 hyperparametres_general:
-  batch_size: [ 256, 512, 1024]
+  batch_size: [1024]
   epochs: 300
   scheduler: cosine
   warmup: linear
@@ -10,106 +10,67 @@ hyperparametres_general:
   T_max: 300
   eta_min: !!float 1e-5
 
-datasets:
-  cifar10:
-    num_classes: 10
-    patience_resnet: 15
-    patience_tiny: 30
-
-    vit_specific:
-      label_smoothing: 0.1
-
-  cifar100:
-    num_classes: 100
-    patience_resnet: 20
-    patience_tiny: 35
-
-    vit_specific:
-      label_smoothing: 0.15
-
-
-vit_specific:
-  patch_size: 4
-  warmup_epochs: 5
-  warmup_type: linear
-  label_smoothing: 0.1
-  drop_path_rate: 0.1
-
-
 #################################
 # SGD
 #################################
-
 sgd:
-  # ResNet-18
+  # ResNet-18 (Linear Scaling x4)
   resnet:
-    lr: !!float 5e-2
+    lr: !!float 2e-1          # 5e-2 * 4 = 0.2
     momentum: 0.9
     nesterov: true
     weight_decay: !!float 5e-4
 
-  # ViT-Tiny
+  # ViT-Tiny (Sqrt Scaling x2 per stabilità su ViT)
   vit:
-    lr: !!float 3e-4
+    lr: !!float 6e-4          # 3e-4 * 2 = 6e-4
     momentum: 0.9
     nesterov: true
     weight_decay: !!float 5e-4
-
-
-
-
 
 #################################
 # Adam
 #################################
-
 adam:
-  # ResNet-18
+  # ResNet-18 (Sqrt Scaling x2)
   resnet:
-    lr: !!float 1e-3
+    lr: !!float 2e-3          # 1e-3 * 2 = 2e-3
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: 0.0
 
-  # ViT-Tiny
+  # ViT-Tiny (Sqrt Scaling x2)
   vit:
-    lr: !!float 5e-4
+    lr: !!float 1e-3          # 5e-4 * 2 = 1e-3
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: 0.0
-
-
 
 #################################
 # AdamW
 #################################
-
 adamw:
-  # ResNet-18
+  # ResNet-18 (Sqrt Scaling x2)
   resnet:
-    lr: !!float 1e-3
+    lr: !!float 2e-3          # 1e-3 * 2 = 2e-3
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 1e-4
 
-  # ViT-Tiny
+  # ViT-Tiny (Sqrt Scaling x2)
   vit:
-    lr: !!float 8e-4
+    lr: !!float 1.6e-3        # 8e-4 * 2 = 1.6e-3
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 0.05
 
-
-
 #################################
 # Adafactor
 #################################
-
 adafactor:
-
-  # ResNet-18
+  # ResNet-18 (Sqrt Scaling x2)
   resnet:
-    lr: !!float 1e-3
+    lr: !!float 2e-3          # 1e-3 * 2 = 2e-3
     beta1: 0.9
     decay_rate: -0.8
     eps: [!!float 1e-30, !!float 1e-3]
@@ -117,9 +78,9 @@ adafactor:
     scale_parameter: false
     weight_decay: !!float 1e-4
 
-  # ViT-Tiny
+  # ViT-Tiny (Sqrt Scaling x2)
   vit:
-    lr: !!float 5e-4
+    lr: !!float 1e-3          # 5e-4 * 2 = 1e-3
     beta1: 0.9
     decay_rate: -0.8
     eps: [!!float 1e-30, !!float 1e-3]
@@ -127,48 +88,38 @@ adafactor:
     scale_parameter: false
     weight_decay: 0.0
 
-
-
 #################################
 # Lion
 #################################
-
 lion:
-
-  # ResNet-18
+  # ResNet-18 (Sqrt Scaling x2)
   resnet:
-    lr: !!float 3e-4
+    lr: !!float 6e-4          # 3e-4 * 2 = 6e-4
     betas: [0.9, 0.99]
     weight_decay: !!float 1e-4
 
-  # ViT-Tiny
+  # ViT-Tiny (Sqrt Scaling x2)
   vit:
-    lr: !!float 3e-4
+    lr: !!float 6e-4          # 3e-4 * 2 = 6e-4
     betas: [0.9, 0.99]
     weight_decay: !!float 0.05
-
-
-
 
 #################################
 # Adam-mini
 #################################
-
 adam-mini:
-
-  # ResNet-18
+  # ResNet-18 (Sqrt Scaling x2)
   resnet:
-    lr: !!float 1e-3
+    lr: !!float 2e-3          # 1e-3 * 2 = 2e-3
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 1e-4
     n_heads: 1
     n_kv_heads: 1
 
-
-  # ViT-Tiny
+  # ViT-Tiny (Sqrt Scaling x2)
   vit:
-    lr: !!float 7e-4
+    lr: !!float 1.4e-3        # 7e-4 * 2 = 1.4e-3
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 0.02
