@@ -94,8 +94,10 @@ def run_experiments(single_experiments=True):
                                             )
 
                     
-                    
-                    run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}"
+                    if single_experiments:
+                        run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}_test_lr"
+                    else:
+                        run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}"
                     path_checkpoint = f"checkpoints/{run_name}"
                     done_flag = os.path.join(path_checkpoint, "DONE")
                     os.makedirs(path_checkpoint, exist_ok=True)
@@ -124,7 +126,7 @@ def run_experiments(single_experiments=True):
                         run = wandb.init(
                             project="Project_work_Optimization_Technique",
                             name=run_name,
-                            group=f"{model_name}-{dataset_name}-bs{bs}",
+                            group=f"{model_name}-{dataset_name}-bs{bs}_test",
                             config={
                                 "model": model_name,
                                 "dataset": dataset_name,
