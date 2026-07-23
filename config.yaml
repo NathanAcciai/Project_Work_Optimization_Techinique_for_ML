@@ -2,7 +2,7 @@ model_name: ["ResNet-18", "ViT-Tiny"]
 optimizer_name: ["adam", "sgd", "adam-mini", "adamw", "adafactor", "lion"]
 
 hyperparametres_general:
-  batch_size: [ 256, 512, 1024]
+  batch_size: [ 256, 512, 1024, 2048]
   epochs: 300
   scheduler: cosine
   warmup: linear
