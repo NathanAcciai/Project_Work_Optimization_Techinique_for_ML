@@ -2,6 +2,71 @@ import utils
 from utils import *
 
 
+def mixup_data(x, y, alpha=0.2):
+    """Apply Mixup augmentation."""
+
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1.0
+
+    batch_size = x.size(0)
+
+    index = torch.randperm(batch_size).to(x.device)
+
+    mixed_x = lam * x + (1 - lam) * x[index]
+
+    y_a = y
+    y_b = y[index]
+
+    return mixed_x, y_a, y_b, lam
+
+
+def cutmix_data(x, y, alpha=1.0):
+    """Apply CutMix augmentation."""
+
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1.0
+
+    batch_size, _, H, W = x.size()
+
+    index = torch.randperm(batch_size).to(x.device)
+
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+
+    cut_ratio = np.sqrt(1 - lam)
+
+    cut_w = int(W * cut_ratio)
+    cut_h = int(H * cut_ratio)
+
+    x1 = np.clip(cx - cut_w // 2, 0, W)
+    y1 = np.clip(cy - cut_h // 2, 0, H)
+
+    x2 = np.clip(cx + cut_w // 2, 0, W)
+    y2 = np.clip(cy + cut_h // 2, 0, H)
+
+    x[:, :, y1:y2, x1:x2] = x[index, :, y1:y2, x1:x2]
+
+    # Adjust lambda based on actual patch area
+    lam = 1 - ((x2-x1)*(y2-y1))/(W*H)
+
+    y_a = y
+    y_b = y[index]
+
+    return x, y_a, y_b, lam
+
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    return (
+        lam * criterion(pred, y_a)
+        +
+        (1 - lam) * criterion(pred, y_b)
+    )
+
+
 class Earlystopping():
     def __init__(self, patience, min_delta=0.005):
         self.patience = patience
@@ -30,7 +95,7 @@ class Earlystopping():
 
 class Trainer():
     def __init__(self, config, model, optimizer, scheduler, checkpoint_path, patience,
-                 model_name=None, warmup_epochs=0):
+                 model_name=None,big_model=False, warmup_epochs=0):
         super(Trainer, self).__init__()
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -39,7 +104,7 @@ class Trainer():
         self.patience = patience
         self.model_name = model_name
         self.warmup_epochs = warmup_epochs  # solo per log/debug, lo scheduler già lo gestisce
-
+        self.big_model= big_model
         # label smoothing solo per ViT, come da config vit_specific
         label_smoothing = 0.0
         if model_name.startswith("ViT"):
@@ -63,19 +128,39 @@ class Trainer():
             torch.cuda.reset_peak_memory_stats(self.device)
 
         start_time = time.time()
-        for inputs, targets in dataloader:
-            inputs, targets = inputs.to(self.device), targets.to(self.device)
+        for images, labels in dataloader:
+
+            images = images.to(self.device)
+            labels = labels.to(self.device)
 
             self.optimizer.zero_grad()
-            outputs = self.model(inputs)
-            loss = self.criterion(outputs, targets)
+            if (self.big_model):
+                r = np.random.rand()
+
+                if r < 0.5:
+                    images, labels_a, labels_b, lam = mixup_data(images,labels,alpha=0.2)
+                    outputs = self.model(images)
+
+                    loss = mixup_criterion(self.criterion,outputs,labels_a,labels_b,lam)
+
+                elif r < 0.75:
+                    images, labels_a, labels_b, lam = cutmix_data(images,labels, alpha=1.0)
+                    outputs = self.model(images)
+                    loss = mixup_criterion(self.criterion,outputs,labels_a,labels_b,lam)
+                else:
+                    outputs = self.model(images)
+                    loss = self.criterion(outputs,labels)
+            else:
+                outputs = self.model(images)
+                loss = self.criterion(outputs,labels)
+
             loss.backward()
             self.optimizer.step()
 
-            running_loss += loss.item() * inputs.size(0)
+            running_loss += loss.item() * images.size(0)
             _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
+            total += outputs.size(0)
+            correct += predicted.eq(outputs).sum().item()
 
         end_time = time.time() - start_time
         epoch_loss = (running_loss / total)

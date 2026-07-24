@@ -50,7 +50,8 @@ def Model_selection(num_classes, config,model_name= "ResNet-18" ):
         model =timm.create_model(
             'convnext_large', 
             pretrained=False, 
-            num_classes=200
+            num_classes=200,
+            drop_path_rate=0.4
             )
 
         return model
@@ -70,7 +71,7 @@ def Model_selection(num_classes, config,model_name= "ResNet-18" ):
 
 
 # %%
-def run_experiments(single_experiments=True):
+def run_experiments(single_experiments=False, big_model=False):
     if single_experiments:
         with open("config_2.yaml") as stream:
                 config = yaml.safe_load(stream)
@@ -123,14 +124,25 @@ def run_experiments(single_experiments=True):
                         patience= config_patience["patience_convnext"]
                     else:
                         patience= config_patience["patience_vit"]
-                    trainer = Trainer(config=config["hyperparametres_general"],
-                                          model=model,
-                                          optimizer=optimizer,        
-                                          scheduler=scheduler,        
-                                          checkpoint_path=path_checkpoint,        
-                                          patience=patience,
-                                          model_name=model_name    
-                                          )
+                    if big_model:
+                        trainer = Trainer(config=config["hyperparametres_general"],
+                                        model=model,
+                                        optimizer=optimizer,        
+                                        scheduler=scheduler,        
+                                        checkpoint_path=path_checkpoint,        
+                                        patience=patience,
+                                        model_name=model_name , 
+                                        big_model=big_model  
+                                        )
+                    else:
+                        trainer = Trainer(config=config["hyperparametres_general"],
+                                        model=model,
+                                        optimizer=optimizer,        
+                                        scheduler=scheduler,        
+                                        checkpoint_path=path_checkpoint,        
+                                        patience=patience,
+                                        model_name=model_name    
+                                        )
                     
                     print("\n" + "="*60)
                     print(f" Start Train: {run_name}")
@@ -181,7 +193,7 @@ def run_experiments(single_experiments=True):
                         time.sleep(3)
 
 # %%
-run_experiments(True)
+run_experiments(True, True)
 
 # %%
 

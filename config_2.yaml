@@ -31,14 +31,14 @@ vit_specific:
 sgd:
   
   convnext:
-    lr: !!float 1e-1
+    lr: !!float 1e-2
     momentum: 0.9
     nesterov: true
-    weight_decay: !!float 1e-4
+    weight_decay: !!float 1e-2
 
   
   vit:
-    lr: !!float 5e-2
+    lr: !!float 5e-3
     momentum: 0.9
     nesterov: true
     weight_decay: !!float 1e-4
