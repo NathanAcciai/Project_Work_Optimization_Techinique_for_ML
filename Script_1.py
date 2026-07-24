@@ -102,7 +102,7 @@ def run_experiments(single_experiments="False", big_model=False):
                         )
                     
                     
-                    
+                    set_seed()
                     model = Model_selection(model_name=model_name, config=config,num_classes=config["datasets"][dataset_name]["num_classes"]).to(device)
                     optimizer = build_optimizer(model,
                                                 opt_name,
@@ -116,9 +116,11 @@ def run_experiments(single_experiments="False", big_model=False):
                     
                     if single_experiments:
                         run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}_test"
+                        path_checkpoint = f"checkpoints/single_exp/{run_name}"
                     else:
                         run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}"
-                    path_checkpoint = f"checkpoints/{run_name}"
+                        path_checkpoint = f"checkpoints/{run_name}"
+                    
                     done_flag = os.path.join(path_checkpoint, "DONE")
                     os.makedirs(path_checkpoint, exist_ok=True)
                     if os.path.exists(done_flag):

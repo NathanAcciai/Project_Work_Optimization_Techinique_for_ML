@@ -28,10 +28,10 @@ datasets:
 
 vit_specific:
   label_smoothing: 0.1
-  patch_size: 16               # CAMBIATO da 8 -> 16 per avere pretrained disponibile
+  patch_size: 16              
   warmup_epochs: 5
   warmup_type: linear
-  drop_path_rate: 0.1          # ridotto: meno regolarizzazione, i pesi sono già buoni
+  drop_path_rate: 0.1          
 
 # #####################################################################
 # SGD
@@ -104,7 +104,7 @@ adafactor:
 # #####################################################################
 lion:
   convnext:
-    lr: !!float 1e-5             # da 1e-4 -> 1e-5 (Lion vuole LR ~3-10x più bassi di AdamW)
+    lr: !!float 1e-5             # da 1e-4 -> 1e-5 
     betas: [0.9, 0.99]
     weight_decay: !!float 0.1
   vit:

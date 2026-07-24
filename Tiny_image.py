@@ -135,52 +135,83 @@ def get_dataloaders(
 ):
     dataset_root = download_tiny_imagenet(data_dir)
 
-    train_tf = build_transforms(img_size, train=True, pretrained_norm=pretrained_norm)
-    val_tf = build_transforms(img_size, train=False, pretrained_norm=pretrained_norm)
-
-    full_train = TinyImageNetTrain(dataset_root, transform=train_tf)
-    
-    test_size = int(0.2 * len(full_train))
-    train_size = len(full_train) - test_size
-
-
-    generator = torch.Generator().manual_seed(42)
-
-    train_indices, test_indices = torch.utils.data.random_split(range(len(full_train)),[train_size, test_size],generator=generator)
-    train_set = torch.utils.data.Subset(
-        full_train,
-        train_indices
+    train_tf = build_transforms(
+        img_size,
+        train=True,
+        pretrained_norm=pretrained_norm
     )
-    full_train_no_aug = TinyImageNetTrain(
+
+    val_tf = build_transforms(
+        img_size,
+        train=False,
+        pretrained_norm=pretrained_norm
+    )
+
+    full_train = TinyImageNetTrain(
+        dataset_root,
+        transform=train_tf
+    )
+
+    full_train_eval = TinyImageNetTrain(
         dataset_root,
         transform=val_tf
     )
-    test_set = TinyImageNetTest(
-        full_train_no_aug,
-        test_indices
+
+    # Split
+    test_size = int(0.1 * len(full_train))
+    train_size = len(full_train) - test_size
+
+    generator = torch.Generator().manual_seed(42)
+
+    train_set, test_set = torch.utils.data.random_split(
+        full_train,
+        [train_size, test_size],
+        generator=generator
     )
+
+    test_set = torch.utils.data.Subset(
+        full_train_eval,
+        test_set.indices
+    )
+
+    # Validation ufficiale
     val_set = TinyImageNetVal(
         dataset_root,
         class_to_idx=full_train.class_to_idx,
         transform=val_tf
     )
+
+    # Loader
     train_loader = DataLoader(
-        train_set, batch_size=batch_size, shuffle=True,
-        num_workers=num_workers, pin_memory=True, drop_last=True,
+        train_set,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=True,
+        drop_last=True,
     )
+
     val_loader = DataLoader(
-        val_set, batch_size=batch_size, shuffle=False,
-        num_workers=num_workers, pin_memory=True,
-    ) 
+        val_set,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=True,
+    )
+
     test_loader = DataLoader(
         test_set,
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
         pin_memory=True,
-    )  
+    )
 
-    print(f"Train samples: {len(train_set)} | Val samples: {len(val_set)} | Classi: {len(full_train.class_to_idx)}")
+    print(
+        f"Train: {len(train_set)} | "
+        f"Val: {len(val_set)} | "
+        f"Test: {len(test_set)} | "
+        f"Classes: {len(full_train.class_to_idx)}"
+    )
+
     return train_loader, val_loader, test_loader
-
-

@@ -22,6 +22,7 @@ import gc
 from pathlib import Path
 import zipfile
 import urllib.request
+import random
 
  
 
@@ -36,6 +37,18 @@ from transformers.optimization import Adafactor
 from lion_pytorch import Lion
 from adam_mini import Adam_mini
 from transformers import CLIPModel
+
+def set_seed(seed: int = 42):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # Se si usano più GPU
+    
+    # Garantisce determinismo su CUDA / cuDNN
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 def format_elapsed_time(seconds):
     
