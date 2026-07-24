@@ -37,11 +37,21 @@ def Model_selection(num_classes, config,model_name= "ResNet-18" ):
             num_classes=num_classes,
             drop_path_rate=config["vit_specific"]["drop_path_rate"]
         ) 
-    elif model_name=="ViT-Base":
-        model = vit_b_16(
-            weights=None,          
-            num_classes=num_classes
-        )
+    elif model_name=="ViT-Large":
+        model = timm.create_model(
+            'vit_large_patch16_224',
+            pretrained=False,
+            patch_size= 8,
+            num_classes=200, 
+            img_size=64, 
+            drop_path_rate=0.2
+            )
+    elif model_name=="convnext_large":
+        model =timm.create_model(
+            'convnext_large', 
+            pretrained=False, 
+            num_classes=200
+            )
 
         return model
 
@@ -72,10 +82,10 @@ def run_experiments(single_experiments=True):
     model_names = config["model_name"]
     optimizer_names = config["optimizer_name"]
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    datasets = ["cifar10", "cifar100"]
+    datasets = ["cifar10", "cifar100","tiny_imagenet"]
     
     for dataset_name in datasets:
-        if dataset_name=="cifar10":
+        if "cifar10" in dataset_name:
             continue
         for bs in batch_sizes:
             for model_name in model_names:
@@ -95,7 +105,7 @@ def run_experiments(single_experiments=True):
 
                     
                     if single_experiments:
-                        run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}_test_lr"
+                        run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}_test"
                     else:
                         run_name = f"{model_name}_{dataset_name}_{opt_name}_{bs}"
                     path_checkpoint = f"checkpoints/{run_name}"
@@ -107,8 +117,12 @@ def run_experiments(single_experiments=True):
                     config_patience= config["datasets"][dataset_name]
                     if model_name=="ResNet-18":
                         patience= config_patience["patience_resnet"]
-                    else:
+                    elif model_name== "ViT-Tiny":
                         patience= config_patience["patience_tiny"]
+                    elif model_name=="convnext_large":
+                        patience= config_patience["patience_convnext"]
+                    else:
+                        patience= config_patience["patience_vit"]
                     trainer = Trainer(config=config["hyperparametres_general"],
                                           model=model,
                                           optimizer=optimizer,        
@@ -167,7 +181,7 @@ def run_experiments(single_experiments=True):
                         time.sleep(3)
 
 # %%
-run_experiments()
+run_experiments(True)
 
 # %%
 

@@ -64,12 +64,17 @@ def load_dataset(dataset_name="cifar10",batch_size= 16):
     #standard trasformation for this type of dataset
     
 
-
-    mean = [0.4914, 0.4822, 0.4465]
-    std = [0.2023, 0.1994, 0.2010]
+    if "cifar" in dataset_name:
+        mean = [0.4914, 0.4822, 0.4465]
+        std = [0.2023, 0.1994, 0.2010]
+        crop= 32
+    else:
+        mean=[0.485, 0.456, 0.406]
+        std=[0.229, 0.224, 0.225]
+        crop= 64
     
     train_transform = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
+        transforms.RandomCrop(crop, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean,std)
@@ -107,7 +112,7 @@ def load_dataset(dataset_name="cifar10",batch_size= 16):
             download=True,
             transform= test_transform
         )
-    elif dataset_name.upper() == "TINYIMAGNET200":
+    elif dataset_name.upper() == "TINY_IMAGENET":
         path= "./data/tiny-imagenet-200"
         train = datasets.ImageFolder(
             path+"/train",

@@ -12,11 +12,14 @@ def get_model_dim(model):
 
 def get_model_cfg(config, optimizer_name, model_name):
     opt_cfg = config[optimizer_name]
-
-    if model_name == "ViT-Tiny":
+    if model_name=="ResNet-18":
+        return opt_cfg["resnet"]
+    elif model_name=="convnext_large":
+        return opt_cfg["convnext"]
+    else:
         return opt_cfg["vit"]
 
-    return opt_cfg["resnet"]
+    
 
 
 
