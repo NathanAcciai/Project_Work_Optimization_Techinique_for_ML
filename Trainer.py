@@ -76,6 +76,12 @@ class Earlystopping():
         self.early_stop = False
 
     def __call__(self, current_loss):
+        if not np.isfinite(current_loss):
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+            return False
+
         if self.best_score is None:
             self.best_score = current_loss
             return True
@@ -133,34 +139,67 @@ class Trainer():
             images = images.to(self.device)
             labels = labels.to(self.device)
 
+            labels_original = labels.clone()
+
             self.optimizer.zero_grad()
-            if (self.big_model):
+
+            if self.big_model:
                 r = np.random.rand()
 
                 if r < 0.5:
-                    images, labels_a, labels_b, lam = mixup_data(images,labels,alpha=0.2)
+                    images, labels_a, labels_b, lam = mixup_data(
+                        images,
+                        labels,
+                        alpha=0.2
+                    )
+
                     outputs = self.model(images)
 
-                    loss = mixup_criterion(self.criterion,outputs,labels_a,labels_b,lam)
+                    loss = mixup_criterion(
+                        self.criterion,
+                        outputs,
+                        labels_a,
+                        labels_b,
+                        lam
+                    )
 
                 elif r < 0.75:
-                    images, labels_a, labels_b, lam = cutmix_data(images,labels, alpha=1.0)
+                    images, labels_a, labels_b, lam = cutmix_data(
+                        images,
+                        labels,
+                        alpha=1.0
+                    )
+
                     outputs = self.model(images)
-                    loss = mixup_criterion(self.criterion,outputs,labels_a,labels_b,lam)
+
+                    loss = mixup_criterion(
+                        self.criterion,
+                        outputs,
+                        labels_a,
+                        labels_b,
+                        lam
+                    )
+
                 else:
                     outputs = self.model(images)
-                    loss = self.criterion(outputs,labels)
+                    loss = self.criterion(outputs, labels)
+
             else:
                 outputs = self.model(images)
-                loss = self.criterion(outputs,labels)
+                loss = self.criterion(outputs, labels)
 
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             self.optimizer.step()
 
+
             running_loss += loss.item() * images.size(0)
+
             _, predicted = outputs.max(1)
-            total += outputs.size(0)
-            correct += predicted.eq(outputs).sum().item()
+
+            total += labels_original.size(0)
+
+            correct += predicted.eq(labels_original).sum().item()
 
         end_time = time.time() - start_time
         epoch_loss = (running_loss / total)

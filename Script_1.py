@@ -1,12 +1,13 @@
 # %%
 
-import utils
-
 import Trainer
+import Tiny_image
+
 import config
 from utils import *
 
 from config import *
+from Tiny_image import *
 from Trainer import *
 
 # %%
@@ -39,19 +40,18 @@ def Model_selection(num_classes, config,model_name= "ResNet-18" ):
         ) 
     elif model_name=="ViT-Large":
         model = timm.create_model(
-            'vit_large_patch16_224',
-            pretrained=False,
-            patch_size= 8,
-            num_classes=200, 
-            img_size=64, 
+            'vit_large_patch16_224.augreg_in21k_ft_in1k',
+            pretrained=True,
+            img_size=64,          # timm interpola il pos_embed automaticamente
+            num_classes=200,
             drop_path_rate=0.2
-            )
+        )
     elif model_name=="convnext_large":
         model =timm.create_model(
-            'convnext_large', 
-            pretrained=False, 
+            'convnext_large.fb_in22k_ft_in1k', 
+            pretrained=True, 
             num_classes=200,
-            drop_path_rate=0.4
+            drop_path_rate=0.2
             )
 
         return model
@@ -71,7 +71,7 @@ def Model_selection(num_classes, config,model_name= "ResNet-18" ):
 
 
 # %%
-def run_experiments(single_experiments=False, big_model=False):
+def run_experiments(single_experiments="False", big_model=False):
     if single_experiments:
         with open("config_2.yaml") as stream:
                 config = yaml.safe_load(stream)
@@ -91,7 +91,16 @@ def run_experiments(single_experiments=False, big_model=False):
         for bs in batch_sizes:
             for model_name in model_names:
                 for opt_name in optimizer_names:
-                    train_dl, val_dl, test_dl = load_dataset(dataset_name=dataset_name, batch_size=bs)
+                    if big_model==False:
+                        train_dl, val_dl, test_dl = load_dataset(dataset_name=dataset_name, batch_size=bs)
+                    else:
+                        train_dl, val_dl, test_dl = get_dataloaders(
+                            data_dir="./data",
+                            img_size=64,
+                            batch_size=256,
+                            pretrained_norm=True,
+                        )
+                    
                     
                     
                     model = Model_selection(model_name=model_name, config=config,num_classes=config["datasets"][dataset_name]["num_classes"]).to(device)
@@ -194,8 +203,6 @@ def run_experiments(single_experiments=False, big_model=False):
 
 # %%
 run_experiments(True, True)
-
-# %%
 
 
 

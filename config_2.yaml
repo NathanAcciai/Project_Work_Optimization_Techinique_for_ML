@@ -1,99 +1,97 @@
-model_name: ["convnext_large", "ViT-Large"] 
-optimizer_name: ["sgd", "adam", "adamw", "lion", "adam-mini", "adafactor"]
+
+
+model_name: ["ViT-Large", "convnext_large"]
+optimizer_name: ["adam", "sgd", "adamw", "lion", "adam-mini", "adafactor"]
+
+# --- pesi pretrained da caricare via timm ---
+pretrained_weights:
+  convnext_large: "convnext_large"
+  vit_large: "vit_large_patch16_224"  
+  pretrained: true
+  num_classes: 200
 
 hyperparametres_general:
-  batch_size: [512]
-  epochs: 300
+  batch_size: [256]
+  epochs: 100                
   scheduler: cosine
   warmup: linear
-  warmup_epochs: 10
-  T_max: 300
-  eta_min: !!float 1e-5
+  warmup_epochs: 5            
+  T_max: 100
+  eta_min: !!float 1e-6
 
 datasets:
   tiny_imagenet:
     num_classes: 200
     img_size: 64
-    patience_convnext: 20
-    patience_vit: 30
-
-    vit_specific:
-      label_smoothing: 0.1
+    patience_convnext: 10      # ridotta, meno epoche totali
+    patience_vit: 15
 
 vit_specific:
-  patch_size: 8          
-  warmup_epochs: 10
-  warmup_type: linear
   label_smoothing: 0.1
-  drop_path_rate: 0.2       
+  patch_size: 16               # CAMBIATO da 8 -> 16 per avere pretrained disponibile
+  warmup_epochs: 5
+  warmup_type: linear
+  drop_path_rate: 0.1          # ridotto: meno regolarizzazione, i pesi sono già buoni
 
-
+# #####################################################################
+# SGD
+# #####################################################################
 sgd:
-  
   convnext:
-    lr: !!float 1e-2
+    lr: !!float 1e-3            # da 1e-2 -> 1e-3
     momentum: 0.9
     nesterov: true
     weight_decay: !!float 1e-2
-
-  
   vit:
-    lr: !!float 5e-3
+    lr: !!float 5e-4            # da 5e-3 -> 5e-4
     momentum: 0.9
     nesterov: true
     weight_decay: !!float 1e-4
 
-
+# #####################################################################
+# Adam
+# #####################################################################
 adam:
-  # ConvNeXt-Large (Da zero)
   convnext:
-    lr: !!float 1e-3
+    lr: !!float 1e-4            # da 1e-3 -> 1e-4
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: 0.0
-
-  # ViT-Large (Da zero)
   vit:
-    lr: !!float 5e-4
+    lr: !!float 5e-5            # da 5e-4 -> 5e-5
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: 0.0
 
-#################################
+# #####################################################################
 # AdamW
-#################################
+# #####################################################################
 adamw:
-  # ConvNeXt-Large (Da zero)
   convnext:
-    lr: !!float 1e-3
+    lr: !!float 1e-4            # da 1e-3 -> 1e-4
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 0.05
-
-  # ViT-Large (Da zero)
   vit:
-    lr: !!float 5e-4
+    lr: !!float 5e-5            # da 5e-4 -> 5e-5
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 0.05
 
-#################################
+# #####################################################################
 # Adafactor
-#################################
+# #####################################################################
 adafactor:
-  # ConvNeXt-Large (Da zero)
   convnext:
-    lr: !!float 1e-3
+    lr: !!float 1e-4            # da 1e-3 -> 1e-4
     beta1: 0.9
     decay_rate: -0.8
     eps: [!!float 1e-30, !!float 1e-3]
     relative_step: false
     scale_parameter: false
     weight_decay: !!float 1e-2
-
-  # ViT-Large (Da zero)
   vit:
-    lr: !!float 5e-4
+    lr: !!float 5e-5            # da 5e-4 -> 5e-5
     beta1: 0.9
     decay_rate: -0.8
     eps: [!!float 1e-30, !!float 1e-3]
@@ -101,40 +99,34 @@ adafactor:
     scale_parameter: false
     weight_decay: !!float 1e-2
 
-#################################
+# #####################################################################
 # Lion
-#################################
+# #####################################################################
 lion:
-  # ConvNeXt-Large (Da zero)
   convnext:
-    lr: !!float 1e-4
+    lr: !!float 1e-5             # da 1e-4 -> 1e-5 (Lion vuole LR ~3-10x più bassi di AdamW)
     betas: [0.9, 0.99]
     weight_decay: !!float 0.1
-
-  # ViT-Large (Da zero)
   vit:
-    lr: !!float 5e-5
+    lr: !!float 5e-6             # da 5e-5 -> 5e-6
     betas: [0.9, 0.99]
     weight_decay: !!float 0.1
 
-#################################
+# #####################################################################
 # Adam-mini
-#################################
+# #####################################################################
 adam-mini:
-  # ConvNeXt-Large (Da zero)
   convnext:
-    lr: !!float 1e-3
+    lr: !!float 1e-4             # da 1e-3 -> 1e-4
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 0.05
     n_heads: 1
     n_kv_heads: 1
-
-  # ViT-Large (Da zero - 16 heads reali dell'architettura ViT-Large)
   vit:
-    lr: !!float 5e-4
+    lr: !!float 5e-5             # da 5e-4 -> 5e-5
     betas: [0.9, 0.999]
     eps: !!float 1e-8
     weight_decay: !!float 0.05
-    n_heads: 16
+    n_heads: 16                  # heads reali di ViT-Large/16
     n_kv_heads: 16

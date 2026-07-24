@@ -17,13 +17,18 @@ import torch.distributed as dist
 import yaml
 import timm 
 import time
-
+from PIL import Image
 import gc
+from pathlib import Path
+import zipfile
+import urllib.request
+
+ 
 
 import torch.nn as nn
 import torch.functional as F
 from torchvision import transforms, datasets
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Dataset
 from torchvision.datasets import CIFAR10, CIFAR100
 from torchvision import transforms
 from torchvision.models import resnet18,vit_b_16
@@ -68,25 +73,13 @@ def load_dataset(dataset_name="cifar10",batch_size= 16):
         mean = [0.4914, 0.4822, 0.4465]
         std = [0.2023, 0.1994, 0.2010]
         crop= 32
-    else:
-        mean=[0.485, 0.456, 0.406]
-        std=[0.229, 0.224, 0.225]
-        crop= 64
     
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(64,scale=(0.8, 1.0)),
+        transforms.RandomResizedCrop(32,scale=(0.8, 1.0)),
         transforms.RandomHorizontalFlip(),
         transforms.RandAugment(num_ops=2,magnitude=9),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean,std=std)
-    ])
-    val_transform = transforms.Compose([
-        transforms.Resize((64,64)),
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485,0.456,0.406],
-            std=[0.229,0.224,0.225]
-        )
     ])
     test_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -106,7 +99,7 @@ def load_dataset(dataset_name="cifar10",batch_size= 16):
             download=True,
             transform= test_transform
         )
-        val= None
+        
     elif dataset_name.upper() == "CIFAR100":
         train = CIFAR100(
             root="./data",
@@ -121,32 +114,15 @@ def load_dataset(dataset_name="cifar10",batch_size= 16):
             download=True,
             transform= test_transform
         )
-        val=None
-    elif dataset_name.upper() == "TINY_IMAGENET":
-        path= "./data/tiny-imagenet-200"
-        train = datasets.ImageFolder(
-            path+"/train",
-            train_transform
-        )
-
-        val = datasets.ImageFolder(
-            path+"/val",
-            val_transform
-        )   
-        test = datasets.ImageFolder(
-                    path+"/test",
-                    val_transform
-                )    
+        
+    
     else:
         raise ValueError("Scegli tra 'CIFAR10' o 'CIFAR100' o 'Imagenet200'")
     
     train_size = int(0.8 * len(train))
     val_size = len(train) - train_size
-    if val is None:
-        train_dataset, val_dataset = random_split(train, [train_size, val_size])
-    else:
-        train_dataset= train
-        val_dataset= val
+    
+    train_dataset, val_dataset = random_split(train, [train_size, val_size])
     train_dl= DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4,pin_memory=True)
     val_dl= DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4,pin_memory=True)
     test_dl= DataLoader(test, batch_size=batch_size, shuffle=False, num_workers=4,pin_memory=True)
