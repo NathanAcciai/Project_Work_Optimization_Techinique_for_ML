@@ -122,7 +122,7 @@ Particular attention is given to SGD, which is generally more sensitive to learn
 **General Training Setup:**
 *   **Batch Size:** [256, 512, 1024]
 *   **Total Epochs:** 300
-*   **Scheduler:** Cosine Annealing
+*   **Scheduler:** Cosine Annealing (T_max = 300)
 *   **Min Learning Rate ($\eta_{min}$):** 1e-5
 *   **Warm-Up:** Linear (5 epochs)
 
@@ -135,6 +135,27 @@ Particular attention is given to SGD, which is generally more sensitive to learn
     *   Patience ResNet-18: 20
     *   Patience ViT-Tiny: 35
     *   Label Smoothing (ViT): 0.15
+*   **ViT-Specific Setup:** Patch size: 4, Drop Path Rate: 0.1
+
+**Optimizer-Specific Hyperparameters:**
+*   **SGD:** Momentum 0.9 (Nesterov=True)
+    *   *ResNet-18:* LR 5e-2, Weight Decay 5e-4
+    *   *ViT-Tiny:* LR 3e-4, Weight Decay 5e-4
+*   **Adam:** Betas (0.9, 0.999), Eps 1e-8
+    *   *ResNet-18:* LR 1e-3, Weight Decay 0.0
+    *   *ViT-Tiny:* LR 5e-4, Weight Decay 0.0
+*   **AdamW:** Betas (0.9, 0.999), Eps 1e-8
+    *   *ResNet-18:* LR 1e-3, Weight Decay 1e-4
+    *   *ViT-Tiny:* LR 8e-4, Weight Decay 0.05
+*   **Adafactor:** Beta1 0.9, Decay Rate -0.8
+    *   *ResNet-18:* LR 1e-3, Weight Decay 1e-4
+    *   *ViT-Tiny:* LR 5e-4, Weight Decay 0.0
+*   **Lion:** Betas (0.9, 0.99)
+    *   *ResNet-18:* LR 3e-4, Weight Decay 1e-4
+    *   *ViT-Tiny:* LR 3e-4, Weight Decay 0.05
+*   **Adam-mini:** Betas (0.9, 0.999), Eps 1e-8
+    *   *ResNet-18:* LR 1e-3, Weight Decay 1e-4, 1 Head
+    *   *ViT-Tiny:* LR 7e-4, Weight Decay 0.02, 3 Heads
 
 ### 2. Configuration for ConvNeXt-Large and ViT-Large (Tiny ImageNet)
 
