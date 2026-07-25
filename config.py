@@ -2,14 +2,26 @@ import utils
 from utils import *
 
 
-def get_model_dim(model):
-    if hasattr(model, "embed_dim"):
-        return model.embed_dim
-    if hasattr(model, "hidden_dim"):
-        return model.hidden_dim
-    if hasattr(model, "fc"):
-        return model.fc.in_features
 
+
+def get_model_dim(model):
+    # 1. Unwrap DDP / DataParallel / torch.compile
+    m = getattr(model, "module", model)
+    m = getattr(m, "_orig_mod", m)
+
+    # 2. Controllo attributi diretti (ViT / timm)
+    for attr in ("hidden_dim", "embed_dim", "num_features"):
+        if getattr(m, attr, None) is not None:
+            return getattr(m, attr)
+
+    # 3. Cerca l'ultimo layer Linear nei blocchi principali (fc, classifier, head) o nell'intero modello
+    targets = [getattr(m, a, None) for a in ("fc", "classifier", "head")] + [m]
+    for target in filter(None, targets):
+        linears = [l for l in target.modules() if isinstance(l, nn.Linear)]
+        if linears:
+            return linears[-1].in_features
+
+    raise ValueError(f"Impossibile determinare la dimensione per {type(m).__name__}.")
 def get_model_cfg(config, optimizer_name, model_name):
     opt_cfg = config[optimizer_name]
     if model_name=="ResNet-18":
@@ -75,21 +87,23 @@ def build_optimizer(model, optimizer_name, model_name, config):
         )
     if optimizer_name == "adam-mini":
         if not dist.is_initialized():
-            os.environ.setdefault("MASTER_ADDR", "localhost")
-            os.environ.setdefault("MASTER_PORT", "12355")
-            os.environ.setdefault("RANK", "0")
-            os.environ.setdefault("WORLD_SIZE", "1")
-            dist.init_process_group(backend="gloo", rank=0, world_size=1)
+                    os.environ.setdefault("MASTER_ADDR", "localhost")
+                    os.environ.setdefault("MASTER_PORT", "12355")
+                    os.environ.setdefault("RANK", "0")
+                    os.environ.setdefault("WORLD_SIZE", "1")
+                    dist.init_process_group(backend="gloo", rank=0, world_size=1)
+
+        dim_val = get_model_dim(model)
 
         optimizer = Adam_mini(
             model.named_parameters(),
             lr=cfg["lr"],
-            dim=get_model_dim(model),
+            dim=dim_val,
             betas=tuple(cfg["betas"]),
             eps=cfg["eps"],
             weight_decay=cfg["weight_decay"],
-            n_heads=cfg.get("n_heads",1),
-            n_kv_heads=cfg.get("n_kv_heads",1)
+            n_heads=cfg.get("n_heads", 1),
+            n_kv_heads=cfg.get("n_kv_heads", 1),
         )
 
         optimizer.adam_block_names.add("pos_embed")

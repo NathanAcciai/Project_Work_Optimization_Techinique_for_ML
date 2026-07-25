@@ -2,6 +2,7 @@
 
 model_name: ["ViT-Large", "convnext_large"]
 optimizer_name: ["adam", "sgd", "adamw", "lion", "adam-mini", "adafactor"]
+#optimizer_name: ["lion"]
 
 # --- pesi pretrained da caricare via timm ---
 pretrained_weights:
@@ -11,7 +12,7 @@ pretrained_weights:
   num_classes: 200
 
 hyperparametres_general:
-  batch_size: [256]
+  batch_size: [512]
   epochs: 100                
   scheduler: cosine
   warmup: linear

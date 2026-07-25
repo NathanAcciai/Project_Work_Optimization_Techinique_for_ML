@@ -87,6 +87,8 @@ def run_experiments(single_experiments="False", big_model=False):
         for bs in batch_sizes:
             for model_name in model_names:
                 for opt_name in optimizer_names:
+                    if model_name=="convnext_large" and opt_name=="adam-mini":
+                        continue
                     if big_model==False:
                         train_dl, val_dl, test_dl = load_dataset_cifar(dataset_name=dataset_name, batch_size=bs)
                     else:
