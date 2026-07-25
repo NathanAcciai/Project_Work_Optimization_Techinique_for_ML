@@ -1,13 +1,9 @@
 # %%
 
 import Trainer
-import Tiny_image
-
 import config
 from utils import *
-
 from config import *
-from Tiny_image import *
 from Trainer import *
 
 # %%
@@ -92,9 +88,9 @@ def run_experiments(single_experiments="False", big_model=False):
             for model_name in model_names:
                 for opt_name in optimizer_names:
                     if big_model==False:
-                        train_dl, val_dl, test_dl = load_dataset(dataset_name=dataset_name, batch_size=bs)
+                        train_dl, val_dl, test_dl = load_dataset_cifar(dataset_name=dataset_name, batch_size=bs)
                     else:
-                        train_dl, val_dl, test_dl = get_dataloaders(
+                        train_dl, val_dl, test_dl = get_dataloaders_tiny(
                             data_dir="./data",
                             img_size=64,
                             batch_size=256,
