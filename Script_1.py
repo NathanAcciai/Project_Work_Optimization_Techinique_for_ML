@@ -202,7 +202,9 @@ def run_experiments(single_experiments="False", big_model=False):
                         time.sleep(3)
 
 # %%
-run_experiments(True, True)
+#single_experiments=True and big_model=True for load config convnext and vit tiny
+
+run_experiments(single_experiments=True,big_model= True)
 
 
 

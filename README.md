@@ -67,14 +67,15 @@ Reference:
 
 ## Experimental Setup
 
-TO DO 
+All experiments and VRAM measurements were conducted on a single **NVIDIA GeForce RTX 5090 GPU (32 GB VRAM)** using the PyTorch framework with CUDA acceleration.
 
 ### Datasets
 
 The following image classification benchmarks are considered:
 
-- CIFAR-10
-- CIFAR-100
+- **CIFAR-10** (10 classes)
+- **CIFAR-100** (100 classes)
+- **Tiny ImageNet** (200 classes, 64x64 resolution)
 
 ---
 
@@ -82,8 +83,10 @@ The following image classification benchmarks are considered:
 
 The optimizers are evaluated on:
 
-- ResNet-18
-- Vision Transformer Tiny (ViT-Tiny)
+- **ResNet-18**
+- **Vision Transformer Tiny (ViT-Tiny patch16 224)**
+- **ConvNeXt-Large** (Pretrained)
+- **Vision Transformer Large (ViT-Large patch16 224)** (Pretrained)
 
 ---
 
@@ -91,10 +94,7 @@ The optimizers are evaluated on:
 
 Each experiment is defined as a unique combination of:
 
-
 Different batch sizes are tested to analyze the impact on memory consumption and scalability:
-
-
 
 until reaching the maximum GPU memory capacity.
 
@@ -116,6 +116,52 @@ Before the final experiments, preliminary runs are performed to identify suitabl
 - scheduler configuration.
 
 Particular attention is given to SGD, which is generally more sensitive to learning-rate selection.
+
+### 1. Configuration for ResNet-18 and ViT-Tiny (CIFAR-10 / CIFAR-100)
+
+**General Training Setup:**
+*   **Batch Size:** [256, 512, 1024]
+*   **Total Epochs:** 300
+*   **Scheduler:** Cosine Annealing
+*   **Min Learning Rate ($\eta_{min}$):** 1e-5
+*   **Warm-Up:** Linear (5 epochs)
+
+**Dataset-Specific Settings:**
+*   **CIFAR-10 (10 classes):**
+    *   Patience ResNet-18: 15
+    *   Patience ViT-Tiny: 30
+    *   Label Smoothing (ViT): 0.1
+*   **CIFAR-100 (100 classes):**
+    *   Patience ResNet-18: 20
+    *   Patience ViT-Tiny: 35
+    *   Label Smoothing (ViT): 0.15
+
+### 2. Configuration for ConvNeXt-Large and ViT-Large (Tiny ImageNet)
+
+**General Training Setup:**
+*   **Batch Size:** 256
+*   **Total Epochs:** 100
+*   **Scheduler:** Cosine Annealing (T_max = 100)
+*   **Min Learning Rate ($\eta_{min}$):** 1e-6
+*   **Warm-Up:** Linear (5 epochs)
+*   **Early Stopping Patience:** ConvNeXt-Large: 10 | ViT-Large: 15
+*   **ViT-Specific Setup:** Label Smoothing: 0.1, Drop Path Rate: 0.1
+
+**Optimizer-Specific Hyperparameters:**
+*   **SGD:** Momentum 0.9 (Nesterov=True)
+    *   *ConvNeXt:* LR 1e-3, Weight Decay 1e-2
+    *   *ViT:* LR 5e-4, Weight Decay 1e-4
+*   **Adam / AdamW:** Betas (0.9, 0.999), Eps 1e-8
+    *   *ConvNeXt:* LR 1e-4, Weight Decay 0.0 (Adam) / 0.05 (AdamW)
+    *   *ViT:* LR 5e-5, Weight Decay 0.0 (Adam) / 0.05 (AdamW)
+*   **Adafactor:** Beta1 0.9, Decay Rate -0.8
+    *   *ConvNeXt:* LR 1e-4, Weight Decay 1e-2
+    *   *ViT:* LR 5e-5, Weight Decay 1e-2
+*   **Lion:** Betas (0.9, 0.99)
+    *   *ConvNeXt:* LR 1e-5, Weight Decay 0.1
+    *   *ViT:* LR 5e-6, Weight Decay 0.1
+*   **Adam-mini:** Betas (0.9, 0.999), Eps 1e-8
+    *   *ViT:* LR 5e-5, Weight Decay 0.05, 16 Heads (Note: Omitted for ConvNeXt as it lacks Multi-Head Attention structures).
 
 ---
 
@@ -145,5 +191,3 @@ Measured as total training time to evaluate computational efficiency.
 Peak GPU memory consumption is recorded to compare the memory footprint of each optimizer.
 
 This metric is particularly relevant because adaptive optimizers typically require additional memory for storing optimizer states.
-
----
