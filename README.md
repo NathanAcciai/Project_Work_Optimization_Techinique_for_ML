@@ -2,9 +2,9 @@
 
 ## Overview
 
-This project investigates the impact of modern optimization algorithms on the training of deep neural networks, with a particular focus on the trade-off between **predictive performance**, **computational cost**, and **GPU memory consumption**.
+This project investigates the impact of modern optimization algorithms on the training and fine-tuning of deep neural networks, with a particular focus on the trade-off between **predictive performance**, **computational cost**, and **GPU memory consumption**.
 
-The goal is to experimentally compare several first-order optimization methods commonly used in deep learning, evaluating how different optimizers affect convergence speed, final accuracy, runtime, and memory efficiency.
+The goal is to experimentally compare several first-order optimization methods commonly used in deep learning, evaluating how different optimizers affect convergence speed, final accuracy, runtime, and memory efficiency. By including both from-scratch training and transfer learning (fine-tuning) scenarios, the project aims to provide concrete insights into actual VRAM savings and performance in real-world use cases.
 
 The experiments are performed on image classification tasks using standard benchmark datasets and architectures.
 
@@ -83,10 +83,12 @@ The following image classification benchmarks are considered:
 
 The optimizers are evaluated on:
 
-- **ResNet-18**
-- **Vision Transformer Tiny (ViT-Tiny patch16 224)**
-- **ConvNeXt-Large** (Pretrained)
-- **Vision Transformer Large (ViT-Large patch16 224)** (Pretrained)
+- **ResNet-18** (Trained from scratch)
+- **Vision Transformer Tiny (ViT-Tiny patch16 224)** (Trained from scratch)
+- **ConvNeXt-Large** (Pretrained, Fine-tuned)
+- **Vision Transformer Large (ViT-Large patch16 224)** (Pretrained, Fine-tuned)
+
+> **Note on Fine-Tuning:** The large-scale models (ConvNeXt-Large and ViT-Large) are initialized with pre-trained weights and fine-tuned on the Tiny ImageNet dataset. This specific setup was chosen to create a concrete, highly realistic scenario. It allows us to practically evaluate and quantify the exact GPU memory savings and accuracy trade-offs provided by memory-efficient optimizers within modern transfer learning pipelines.
 
 ---
 
@@ -157,7 +159,7 @@ Particular attention is given to SGD, which is generally more sensitive to learn
     *   *ResNet-18:* LR 1e-3, Weight Decay 1e-4, 1 Head
     *   *ViT-Tiny:* LR 7e-4, Weight Decay 0.02, 3 Heads
 
-### 2. Configuration for ConvNeXt-Large and ViT-Large (Tiny ImageNet)
+### 2. Configuration for ConvNeXt-Large and ViT-Large (Tiny ImageNet Fine-Tuning)
 
 **General Training Setup:**
 *   **Batch Size:** 256
