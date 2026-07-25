@@ -1,0 +1,7 @@
+"Step","ResNet-18_cifar10_lion_1024 - test/accuracy_test","ResNet-18_cifar10_lion_1024 - test/accuracy_test__MIN","ResNet-18_cifar10_lion_1024 - test/accuracy_test__MAX","ResNet-18_cifar10_adafactor_1024 - test/accuracy_test","ResNet-18_cifar10_adafactor_1024 - test/accuracy_test__MIN","ResNet-18_cifar10_adafactor_1024 - test/accuracy_test__MAX","ResNet-18_cifar10_adamw_1024 - test/accuracy_test","ResNet-18_cifar10_adamw_1024 - test/accuracy_test__MIN","ResNet-18_cifar10_adamw_1024 - test/accuracy_test__MAX","ResNet-18_cifar10_adam-mini_1024 - test/accuracy_test","ResNet-18_cifar10_adam-mini_1024 - test/accuracy_test__MIN","ResNet-18_cifar10_adam-mini_1024 - test/accuracy_test__MAX","ResNet-18_cifar10_sgd_1024 - test/accuracy_test","ResNet-18_cifar10_sgd_1024 - test/accuracy_test__MIN","ResNet-18_cifar10_sgd_1024 - test/accuracy_test__MAX","ResNet-18_cifar10_adam_1024 - test/accuracy_test","ResNet-18_cifar10_adam_1024 - test/accuracy_test__MIN","ResNet-18_cifar10_adam_1024 - test/accuracy_test__MAX"
+"39","","","","85.95","85.95","85.95","","","","","","","","","","","",""
+"40","86.88","86.88","86.88","","","","","","","","","","","","","","",""
+"43","","","","","","","","","","","","","","","","87.26","87.26","87.26"
+"54","","","","","","","","","","","","","85.66","85.66","85.66","","",""
+"55","","","","","","","","","","88.02","88.02","88.02","","","","","",""
+"59","","","","","","","88.79","88.79","88.79","","","","","","","","",""
